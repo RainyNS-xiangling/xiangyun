@@ -17,10 +17,10 @@
     body {
       background-color: #FDF0E9;
       color: #514C4E;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden; /* 避免外層出現雙重滾動條 */
+      /* 修正：移除 overflow: hidden 以允許整頁正常滾動 */
     }
     /* ==========================================================================
        2. 頂部導覽列 (Header Styles)
@@ -116,7 +116,7 @@
       color: #514C4E;
       box-shadow: 0 4px 12px rgba(81, 76, 78, 0.15);
       white-space: nowrap;
-      display: none; /* 預設隱藏，由 JS 觸發顯示 */
+      display: none;
       align-items: center;
       gap: 6px;
       z-index: 20;
@@ -159,9 +159,7 @@
       width: 100%;
       margin: 0 auto;
       padding: 20px;
-      overflow-y: auto;
-      padding-bottom: 20px;
-      touch-action: pan-y; /* 確保手機上下滑動順暢，同時支援橫向滑動 */
+      touch-action: pan-y;
     }
     .page-section { display: none; }
     .page-section.active { display: block; }
@@ -294,7 +292,7 @@
        ========================================================================== */
     .announcement-board {
       position: fixed;
-      bottom: 75px;
+      bottom: 30px;
       right: 30px;
       width: 240px;
       height: 60px;
@@ -322,20 +320,13 @@
       color: #514C4E;
     }
     /* ==========================================================================
-       6. 頁尾固定區 (Footer Area)
+       6. 頁尾區 (Footer Area)
        ========================================================================== */
-    .footer {
-      
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: #FDF0E9;
-      border-top: 1px solid #F8B5B7;
-      box-shadow: 0 -2px 10px rgba(81, 76, 78, 0.05);
-    }
     footer {
       background-color: #F8E6DD;
-      padding: 12px 30px;
+      padding: 20px 30px;
+      border-top: 1px solid #F8B5B7;
+      margin-top: auto;
     }
     .footer-content { max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; }
     .footer-section { flex: 1; }
@@ -385,7 +376,6 @@
       z-index: 10;
     }
     .close-btn:hover { color: #514C4E; }
-    .modalDetail { font-size: 10px; }
     
     /* Modal 圖片輪播區塊 */
     .modal-img {
@@ -470,7 +460,6 @@
         </div>
         <button class="page-btn" id="btn-p3" onclick="switchPage(3)">Online Ordering</button>
       </div>
-      
     </div>
   </header>
 
@@ -522,7 +511,7 @@
       </div>
     </div>
 
-    <!-- 第二頁：單品展示 (商品 5～14) -->
+    <!-- 第二頁：單品展示 -->
     <div id="page2" class="page-section">
       <div class="package-title">Products</div>
       <div class="products-grid">
@@ -597,8 +586,6 @@
           <div class="product-price">$78</div>
           <div class="product-desc">This is a “Book of Answers”‑themed book for daily journaling or notetaking.</div>
         </div>
-
-       
       </div>
     </div>
 
@@ -613,23 +600,21 @@
     <button class="more-btn" style="bottom: 2px; right: 4px;">...</button>
   </div>
 
-  <!-- 頁尾固定資訊 -->
-  
-    <footer>
-      <div class="footer-content">
-        <div class="footer-section">
-          <h4>Our contact:</h4>
-          <p style="font-size: 12px; color: #736C6F;">Email:  | Phone: </p>
-        </div>
-        <div class="footer-section">
-          <h4>School information:</h4>
-          <p style="font-size: 12px; color: #736C6F;">高主教書院</p>
-        </div>
+  <!-- 頁尾資訊 -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Our contact:</h4>
+        <p style="font-size: 12px; color: #736C6F;">Email:  | Phone: </p>
       </div>
-    </footer>
-  </div>
+      <div class="footer-section">
+        <h4>School information:</h4>
+        <p style="font-size: 12px; color: #736C6F;">高主教書院</p>
+      </div>
+    </div>
+  </footer>
 
-  <!-- 共用彈出視窗 Modal (商品詳情 & 公告內容) -->
+  <!-- 共用彈出視窗 Modal -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
     <div class="modal-box">
       <button class="close-btn" onclick="closeModalDirect()">&times;</button>
@@ -649,34 +634,25 @@
   </div>
 
   <script>
-    /* ==========================================================================
-       1. 全局變數定義
-       ========================================================================== */
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSUS1Nk2av9skViyElDyKYlTn_kAw-xVGItP7a0hY8hbDKZrXBr6YOjKARN7B37a9s/exec';
     let timer = null;
     let currentPage = 1;
     const totalPages = 3;
 
-    let currentImages = [];     // 當前 Modal 載入的所有圖片陣列
-    let currentImageIndex = 0;  // 目前顯示第幾張圖
+    let currentImages = [];
+    let currentImageIndex = 0;
 
     let announcementData = {
       title: '📢 最新公告與活動訊息',
       detail: '公告內容載入中...'
     };
 
-    /* ==========================================================================
-       2. 初始化事件 (Page Load)
-       ========================================================================== */
     window.onload = function() {
-      startTimer();          // 啟動 5 秒提示氣泡定時器
-      fetchAnnouncement();   // 向 Google Apps Script 抓取最新公告
-      initSwipeEvent();      // 啟動手機觸控左右滑動監聽
+      startTimer();
+      fetchAnnouncement();
+      initSwipeEvent();
     };
 
-    /* ==========================================================================
-       3. API 串接：動態抓取公告
-       ========================================================================== */
     function fetchAnnouncement() {
       fetch(GOOGLE_SCRIPT_URL)
         .then(response => response.json())
@@ -692,9 +668,6 @@
         });
     }
 
-    /* ==========================================================================
-       4. 提示氣泡與頁面切換控制
-       ========================================================================== */
     function startTimer() {
       timer = setTimeout(function() {
         document.getElementById('hintTooltip').style.display = 'flex';
@@ -722,9 +695,6 @@
       if (timer) clearTimeout(timer);
     }
 
-    /* ==========================================================================
-       5. 手機端左右滑動切換頁面 (Touch Swipe Events)
-       ========================================================================== */
     function initSwipeEvent() {
       const swipeArea = document.getElementById('swipeArea');
       let touchStartX = 0;
@@ -756,11 +726,7 @@
       }
     }
 
-    /* ==========================================================================
-       6. 彈出視窗 (Modal) 與圖片輪播邏輯
-       ========================================================================== */
     function openModal(title, price, detail, images) {
-      // 判斷傳入的是陣列還是單字串，統一規格
       if (Array.isArray(images)) {
         currentImages = images;
       } else if (typeof images === 'string' && images.trim() !== '') {
